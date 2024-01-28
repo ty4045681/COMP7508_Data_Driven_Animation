@@ -38,6 +38,10 @@ def part1_show_T_pose(viewer, joint_names, joint_parents, joint_offsets):
         '''
         ########## Code Start ############
 
+        offset = joint_offsets[joint_idx]
+        if parent_idx != -1:
+            offset += global_joint_position[parent_idx]
+        global_joint_position[joint_idx] = offset
 
         ########## Code End ############
         viewer.set_joint_position_by_name(joint_names[joint_idx], global_joint_position[joint_idx])
