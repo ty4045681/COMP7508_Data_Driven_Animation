@@ -1,5 +1,6 @@
 # Name:  
-# UID:  
+# UID:
+from pprint import pprint
 
 import numpy as np
 from scipy.spatial.transform import Rotation as R
@@ -93,7 +94,20 @@ def part2_forward_kinametic(viewer, joint_names, joint_parents, joint_offsets, j
                
     '''
     ########## Code Start ############
-    
+
+    for f in range(frame_number):
+        for j in range(joint_number):
+            rotation = R.from_quat(joint_rotations[f, j, :])
+
+            if joint_parents[j] != -1:
+                parent_rotation = R.from_quat(global_joint_orientations[f, joint_parents[j], :])
+                global_joint_orientations[f, j, :] = (parent_rotation * rotation).as_quat()
+
+                rotated_offset = parent_rotation.apply(joint_offsets[j])
+                global_joint_positions[f, j, :] = global_joint_positions[f, joint_parents[j], :] + rotated_offset
+            else:
+                global_joint_orientations[f, j, :] = rotation.as_quat()
+                global_joint_positions[f, j, :] = joint_positions[f, j, :]
 
     ########## Code End ############
     if not show_animation:
@@ -138,7 +152,7 @@ def main():
     part1_show_T_pose(viewer, joint_names, joint_parents, joint_offsets)
 
     # part 2
-    # part2_forward_kinametic(viewer, joint_names, joint_parents, joint_offsets, local_joint_positions, local_joint_rotations, show_animation=True)
+    part2_forward_kinametic(viewer, joint_names, joint_parents, joint_offsets, local_joint_positions, local_joint_rotations, show_animation=True)
 
 
 if __name__ == "__main__":
