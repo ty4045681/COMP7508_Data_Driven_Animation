@@ -94,14 +94,17 @@ def inverse_kinematics(meta_data, global_joint_positions, global_joint_orientati
                 '''
                 
                 ########## Code Start ############
-                
 
+                vec_cur_to_end = norm(chain_positions[end_idx] - chain_positions[current_idx])
+                vec_cur_to_target = norm(target_pose - chain_positions[current_idx])
+                rot_angle = np.arccos(np.clip(np.dot(vec_cur_to_end, vec_cur_to_target), -1.0, 1.0))
 
+                if not np.isnan(rot_angle) and rot_angle > 1e-5:
+                    rot_axis = norm(np.cross(vec_cur_to_end, vec_cur_to_target))
+                    rot_vec = rot_angle * rot_axis
+                    rot_mat = R.from_rotvec(rot_vec)
+                    chain_orientations[current_idx] = rot_mat * chain_orientations[current_idx]
 
-
-
-
-                
                 ########## Code End ############
 
                 chain_local_rotations = [chain_orientations[0]] + [chain_orientations[i].inv() * chain_orientations[i + 1] for i in range(len(path) - 1)]
