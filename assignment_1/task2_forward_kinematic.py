@@ -50,7 +50,7 @@ def part1_show_T_pose(viewer, joint_names, joint_parents, joint_offsets):
     viewer.run()
 
 
-def part2_forward_kinametic(viewer, joint_names, joint_parents, joint_offsets, joint_positions, joint_rotations, show_animation=False):
+def part2_forward_kinematic(viewer, joint_names, joint_parents, joint_offsets, joint_positions, joint_rotations, show_animation=False):
     '''
     A function to calculate the global joint positions and orientations by FK
     F: Frame number;  J: Joint number
@@ -152,7 +152,7 @@ def main():
     part1_show_T_pose(viewer, joint_names, joint_parents, joint_offsets)
 
     # part 2
-    part2_forward_kinametic(viewer, joint_names, joint_parents, joint_offsets, local_joint_positions, local_joint_rotations, show_animation=True)
+    part2_forward_kinematic(viewer, joint_names, joint_parents, joint_offsets, local_joint_positions, local_joint_rotations, show_animation=True)
 
 
 if __name__ == "__main__":
