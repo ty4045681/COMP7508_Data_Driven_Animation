@@ -195,6 +195,20 @@ def main():
     IK_example(viewer, np.array([0.5, 0.75, 0.5]), 'RootJoint', 'lWrist_end')
     # IK_example(viewer, np.array([0.5, 0.75, 0.5]), 'lToeJoint_end', 'lWrist_end')
     # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'RootJoint', 'lWrist_end')
+
+    # # Arm movement
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lShoulder', 'lWrist_end')
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rShoulder', 'rWrist_end')
+    # # Leg movement
+    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'lHip', 'lToeJoint_end')
+    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'rHip', 'rToeJoint_end')
+    # # Spine movement
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'torso_head_end')
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'lowerback_torso', 'torso_head_end')
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'lowerback_torso')
+    # # Mixed limb movement
+    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'lShoulder', 'rToeJoint_end')
+    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'rShoulder', 'lToeJoint_end')
     # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lToeJoint_end', 'lWrist_end')
     # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rToeJoint_end', 'lWrist_end')
 
