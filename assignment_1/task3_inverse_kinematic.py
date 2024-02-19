@@ -48,7 +48,8 @@ class MetaData:
         return path, path_name, path1, path2
 
 
-def inverse_kinematics(meta_data, global_joint_positions, global_joint_orientations, target_pose, method='ccd'):
+def inverse_kinematics(meta_data, global_joint_positions, global_joint_orientations, target_pose, method='ccd',
+                       iter_num=20):
     path, path_name, path1, path2 = meta_data.get_path_from_root_to_end()
 
     '''
@@ -65,10 +66,9 @@ def inverse_kinematics(meta_data, global_joint_positions, global_joint_orientati
 
     # Feel free to implement any other IK methods, bonus will be given
     if method == 'ccd':
-        iteration_num = 20
         end_joint_name = meta_data.end_joint
         end_idx = path_name.index(end_joint_name)
-        for _ in range(iteration_num):
+        for _ in range(iter_num):
             for current_idx in range(end_idx - 1, 0, -1):
                 '''
                 TODO: How to update chain_orientations by optimizing the chain_positions(CCD)?
@@ -152,13 +152,14 @@ def IK_example(viewer, target_pos, start_joint, end_joint):
     global_joint_position = viewer.get_joint_positions()
     global_joint_orientation = viewer.get_joint_orientations()
 
-    joint_position, joint_orientation = inverse_kinematics(meta_data, global_joint_position, global_joint_orientation, target_pos)
+    joint_position, joint_orientation = inverse_kinematics(meta_data, global_joint_position, global_joint_orientation,
+                                                           target_pos)
     viewer.show_pose(joint_name, joint_position, joint_orientation)
     viewer.run()
     pass
 
 
-def IK_interactive(viewer, target_pos, start_joint, end_joint):
+def IK_interactive(viewer, target_pos, start_joint, end_joint, iter_num):
     '''
     A simple interactive example for inverse kinematics
     '''
@@ -177,7 +178,9 @@ def IK_interactive(viewer, target_pos, start_joint, end_joint):
 
         def update_func(self, viewer):
             target_pos = np.array(self.marker.getPos())
-            self.joint_position, self.joint_orientation = inverse_kinematics(meta_data, self.joint_position, self.joint_orientation, target_pos)
+            self.joint_position, self.joint_orientation = inverse_kinematics(meta_data, self.joint_position,
+                                                                             self.joint_orientation, target_pos,
+                                                                             iter_num=iter_num)
             viewer.show_pose(joint_name, self.joint_position, self.joint_orientation)
     handle = UpdateHandle(marker, joint_position, joint_orientation)
     handle.update_func(viewer)
@@ -192,25 +195,46 @@ def main():
     You should try different start and end joints and different target positions
     use WASD to move the control points in interactive mode (click the scene to activate the control points)
     '''
-    IK_example(viewer, np.array([0.5, 0.75, 0.5]), 'RootJoint', 'lWrist_end')
+    # IK_example(viewer, np.array([0.5, 0.75, 0.5]), 'RootJoint', 'lWrist_end')
     # IK_example(viewer, np.array([0.5, 0.75, 0.5]), 'lToeJoint_end', 'lWrist_end')
     # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'RootJoint', 'lWrist_end')
 
     # # Arm movement
-    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lShoulder', 'lWrist_end')
-    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rShoulder', 'rWrist_end')
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lShoulder', 'lWrist_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lShoulder', 'lWrist_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rShoulder', 'rWrist_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rShoulder', 'rWrist_end', iter_num=2)
+
     # # Leg movement
-    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'lHip', 'lToeJoint_end')
-    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'rHip', 'rToeJoint_end')
+    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'lHip', 'lToeJoint_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'lHip', 'lToeJoint_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'rHip', 'rToeJoint_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.5, 0.15, 0.5]), 'rHip', 'rToeJoint_end', iter_num=2)
+
     # # Spine movement
-    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'torso_head_end')
-    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'lowerback_torso', 'torso_head_end')
-    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'lowerback_torso')
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'torso_head_end', iter_num=20)
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'torso_head_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'lowerback_torso', 'torso_head_end', iter_num=20)
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'lowerback_torso', 'torso_head_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'lowerback_torso', iter_num=20)
+    # IK_interactive(viewer, np.array([-0.3, 1.2, 0]), 'pelvis_lowerback', 'lowerback_torso', iter_num=2)
+
     # # Mixed limb movement
-    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'lShoulder', 'rToeJoint_end')
-    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'rShoulder', 'lToeJoint_end')
-    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lToeJoint_end', 'lWrist_end')
-    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rToeJoint_end', 'lWrist_end')
+    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'lShoulder', 'rToeJoint_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'lShoulder', 'rToeJoint_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'rShoulder', 'lToeJoint_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.8, 0.5, 0.8]), 'rShoulder', 'lToeJoint_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lToeJoint_end', 'lWrist_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'lToeJoint_end', 'lWrist_end', iter_num=2)
+
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rToeJoint_end', 'lWrist_end', iter_num=20)
+    # IK_interactive(viewer, np.array([0.5, 0.75, 0.5]), 'rToeJoint_end', 'lWrist_end', iter_num=2)
 
 
 if __name__ == "__main__":
