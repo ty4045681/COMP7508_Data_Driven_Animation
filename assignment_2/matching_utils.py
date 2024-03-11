@@ -88,6 +88,7 @@ class InterpolationHelper():
         vel = eydt*tmp1 + target_vel
         acc = eydt * (acc - j1*d*dt)
         return pos, vel, acc
+    
     @staticmethod
     def simulation_rotations_update(rot, avel, target_rot, halflife, dt):
         d = InterpolationHelper.halflife2dampling(halflife)/2

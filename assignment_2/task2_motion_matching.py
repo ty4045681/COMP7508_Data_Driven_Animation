@@ -7,17 +7,7 @@ import scipy.signal as signal
 from scipy.spatial import cKDTree
 from scipy.spatial.transform import Rotation as R
 
-'''
-Basiclly, we have:
-1. Position of the each joint
-2. Rotation of the each joint
-3. Velocity of the each joint
-4. Angular velocity of the each joint
-5. A futher trajectory information (Position, Rotation, 2 value for each future)
-   Here is 6 because we record the future trajectory for next 20, 40 and 60 frames.
 
-How can we list *PART* of variable names, and you can select the features you want to use.
-'''
 feature_mapping = {
     'lFootPos': 3,
     'rFootPos': 3,
@@ -41,7 +31,9 @@ feature_mapping = {
     'hipRot': 3,
     'hipVel': 3,
     'trajectoryPos2D': 6,
-    'trajectoryRot2D': 6
+    'trajectoryRot2D': 6,
+    'lKneePos': 3,
+    
 }
 
 class Database():
@@ -155,24 +147,6 @@ class Database():
         
         print('Feature Extraction Done')
         
-    '''
-    Feature extraction function
-    Parameters: 
-        - root_pos: (T, 3)    The global root position for T frames
-        - root_rot: (T, 4)    The global root orientation for T frames
-        - pos:  (T, J, 3)     The global position for J joints for T frames 
-        - rot:  (T, J, 4)     The global orientation for J joints for T frames 
-        - vel:  (T, J, 3)     The velocity of J joints for T frames 
-        - avel: (T, J, 3)     The augular velocity of J joints for T frames
-    Output:
-        features:   (T, dim)  The features for each frame
-    Hints:
-        1. You can follow the extract_xxx functions to do
-           but anything else you want to implment is also ok
-        2. The extract_rotation will return eulur angle
-           because the L2 distance between two quaternion is not meaningful 
-        3. The future position and rotation will get a future 20, 40, 60 in the default
-    '''
     def extract_features(self, root_pos, root_rot, pos, rot, vel, avel):
         features = []
         for feature_name in self.feature_names:
@@ -318,8 +292,6 @@ class CharacterController:
             query_feature = cur_feature.copy()
             
             if 'trajectoryPos2D' in self.db.feature_names:
-                # If you change the 20, 40, 60 setting in the Database class, you should change it here as well.
-                # For example, if you change it to 20, 40, 60, 80, you should change the index here to 1:5
                 future_pos = np.concatenate([np.array(i).reshape(1,3) for i in desired_pos_list[1:4]], axis=0)
                 future_pos = self.global_bone_rot.inv().apply(future_pos - self.global_bone_pos.reshape(1,3))
                 start_idx = self.db.feature_start_idxs[self.db.feature_names.index('trajectoryPos2D')]
@@ -327,8 +299,6 @@ class CharacterController:
                 query_feature[start_idx:end_idx] = (future_pos[:,[0,2]]).flatten()
             
             if 'trajectoryRot2D' in self.db.feature_names:
-                # If you change the 20, 40, 60 setting in the Database class, you should change it here as well.
-                # For example, if you change it to 20, 40, 60, 80, you should change the index here to 1:5
                 future_rot = np.concatenate([np.array(i).reshape(1,4) for i in desired_rot_list[1:4]], axis=0)
                 future_rot = (self.global_bone_rot.inv() * R.from_quat(future_rot[:,[1,2,3,0]])).apply(np.array([0,0,1]))
                 start_idx = self.db.feature_start_idxs[self.db.feature_names.index('trajectoryRot2D')]
@@ -439,28 +409,11 @@ def main():
     viewer = SimpleViewer()
     controller = Controller(viewer)
     
-    '''
-    Todo in part 3:
-        1. Disign the combination of variables 
-        2. If you have better feature can be used, implement the calculation in line 174
-    You can try following examples, but these variables are not enough to create realistic motion
-    All the variable name can be found in the feature_mapping variable
-    '''
+    selected_feature_names = ['trajectoryPos2D', 'trajectoryRot2D']
+    selected_feature_weights = [1, 1]
     
-    # selected_feature_names = ['trajectoryPos2D', 'trajectoryRot2D']
+    # selected_feature_names = ['lFootPos', 'rFootPos']
     # selected_feature_weights = [1, 1]
-    
-    selected_feature_names = ['lFootPos', 'rFootPos']
-    selected_feature_weights = [0.75, 0.75]
-    
-    # selected_feature_names = ['lFootPos', 'rFootPos', 'lFootVel', 'rFootVel']
-    # selected_feature_weights = [0.75, 0.75, 1, 1]
-    
-    # selected_feature_names = ['lFootPos', 'rFootPos', 'lFootVel', 'rFootVel', 'hipVel']
-    # selected_feature_weights = [0.75, 0.75, 1, 1, 1]
-    
-    # selected_feature_names = ['lFootPos', 'rFootPos', 'lFootRot', 'rFootRot', 'hipVel', 'lHandPos', 'rHandPos']
-    # selected_feature_weights = [0.75, 0.75, 1, 1, 1, 1, 1, 1]
     
     assert len(selected_feature_names) == len(selected_feature_weights)
     

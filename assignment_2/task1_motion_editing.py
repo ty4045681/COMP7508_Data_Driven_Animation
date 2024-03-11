@@ -41,11 +41,28 @@ def interpolation(left_data, right_data, t, method='linear', return_first_key=Tr
     '''
     ########## Code Start ############
     if method == 'linear':
-        
+        for i in range(1, t):
+            factor = i / t
+            data_between = left_data + (right_data - left_data) * factor
+            res.append(data_between)
         
         return res
     elif method == 'slerp':
-        
+        num_joints = left_data.shape[0]
+        dimensions = left_data.shape[1]
+        for joint_idx in range(num_joints):
+            q1 = left_data[joint_idx]
+            q2 = right_data[joint_idx]
+            key_rots = R.from_quat([q1, q2])
+            key_times = [0, 1]
+            slerp = Slerp(key_times, key_rots)
+            new_key_times = np.linspace(0, 1, t + 1)[1:-1]  # Exclude the first and last to avoid duplication
+            interp_rots = slerp(new_key_times).as_quat()
+            if joint_idx == 0:
+                combined_rots = np.empty((t - 1, num_joints, dimensions))
+            combined_rots[:, joint_idx] = interp_rots
+        for i in range(t - 1):
+            res.append(combined_rots[i])
         
         return res
     ########## Code End ############
@@ -93,7 +110,7 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     '''
     TODO: Implement following functions
     Hints:
-        1. We should operate on the local joint positions and rotations
+        1. We should operation on the local joint positions and rotations
             motion.local_joint_positions: (num_frames, num_joints, 3)
             motion.local_joint_rotations: (num_frames, num_joints, 4)
         2. There are five steps in the concatenation:
@@ -105,26 +122,27 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
                 * sim_matrix is a matrix with shape (win_1.shape[0], win_2.shape[0])
                 * sim_matrix[i, j] = np.linalg.norm(search_source[i] - search_target[j])
                 * Find the minimum value in sim_matrix and get the corresponding index i and j
-            iii) the i and j is the index in the window, so convert it to the index in the motion
+            iii) the i and j is the index for the searching window, so convert it to the index in the original motion sequence
             iv) we have the pose in motion_1(real_i) and motion_2(real_j), then we can do the interpolation
                 * The interpolation should be done for the *positions* and *rotations* both
-                * You must shift the root positions of motion_2(real_j) to the root positions of motion_1(real_i)
+                * (Shifting) You must align the root positions of motion_2(real_j) to the root positions of motion_1(real_i)
+                # The shifting is done by updating variable: motion2.local_joint_positions = motion2.local_joint_positions - ?
             v) combine the motion1, betweening, motion2 into one motion (have been provided)
-        3. You can get all marks if you finish above steps correctly, but bonus will be given if you can do any one of them:
+        3. You can get all marks if you done above steps correctly, but bonus will be given if you can do any one of them:
             (bonus) There are N between_frames, but the root position in these frames are not considered
             (bonus) The velocity of two motions are not the same, it can give different weight to the two motions interpolation
             (bonus) The inertialization method provides the best results ref:https://theorangeduck.com/page/spring-roll-call#inertialization
             (bonus) Any way to produce more smooth and natural transitions
     
     Useful functions:
-        1. The difference between two vectors: np.linalg.norm(a - b)
-        2. The index of minimal value in a matrix: np.min(sim_matrix)
+        1. The differece between two vectors: np.linalg.norm(a - b)
+        2. The index of minimal value in a matrix: np.argmin(dtw)
         3. local_joint_rotations = motion.local_joint_rotations
         4. local_joint_positions = motion.local_joint_positions
-        5. Visualize the sim_matrix matrix:
+        5. Visualize the dtw matrix:
             import matplotlib.pyplot as plt
-            plt.imshow(sim_matrix)
-            plt.show() # You can use plt.savefig('sim_matrix.png') to save the image
+            plt.imshow(dtw)
+            plt.show() # You can use plt.savefig('dtw.png') to save the image
     '''
     
     ########## Code Start ############
@@ -133,11 +151,13 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     
     # sim_matrix = 
     # min_idx = 
-    # i, j = min_idx // sim_matrix.shape[1], min_idx % sim_matrix.shape[1]
+    # i, j = min_idx // dtw.shape[1], min_idx % dtw.shape[1]
     # real_i, real_j = 
     
-    # between_local_pos = 
-    # between_local_rot = 
+    # motion2.local_joint_positions = motion2.local_joint_positions - ?
+    
+    # between_local_pos = interpolation(?, ?, between_frames, 'linear')
+    # between_local_rot = interpolation(?, ?, between_frames, 'slerp')
     
     ########## Code End ############
     
@@ -153,7 +173,7 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     return res
 
         
-def part2_concatenate(viewer, between_frames, example=False):
+def part2_concatenate(viewer, between_frames, do_interp=True):
     walk_forward = BVHMotion('data/motion_walking.bvh')
     run_forward = BVHMotion('data/motion_running.bvh')
     run_forward.adjust_joint_name(walk_forward.joint_name)
@@ -161,7 +181,7 @@ def part2_concatenate(viewer, between_frames, example=False):
     last_frame_index = 40
     start_frame_indx = 0
     
-    if not example:
+    if do_interp:
         motion = concatenate_two_motions(walk_forward, run_forward, last_frame_index, start_frame_indx, between_frames, method='interpolation')
     else:
         motion = walk_forward.raw_copy()
@@ -181,11 +201,11 @@ def part2_concatenate(viewer, between_frames, example=False):
 def main():
     viewer = SimpleViewer()  
    
-    # part1_key_framing(viewer, 10, 10)
+    part1_key_framing(viewer, 10, 10)
     # part1_key_framing(viewer, 10, 5)
     # part1_key_framing(viewer, 10, 20)
     # part1_key_framing(viewer, 10, 30)
-    part2_concatenate(viewer, between_frames=8, example=True)
+    # part2_concatenate(viewer, between_frames=8, do_interp=False)
     # part2_concatenate(viewer, between_frames=8)  
     viewer.run()
 
