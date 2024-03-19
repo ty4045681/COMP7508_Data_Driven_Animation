@@ -427,11 +427,38 @@ def main():
     viewer = SimpleViewer()
     controller = Controller(viewer)
 
-    selected_feature_names = ['trajectoryPos2D', 'trajectoryRot2D']
-    selected_feature_weights = [1, 1]
+    # Lower body
+    # hipPos: 0.9 (crucial for overall balance and movement)
+    # lFootPos: 0.8 (important for step placement)
+    # rFootPos: 0.8 (important for step placement)
+    # lFootVel: 0.7 (speed of step is critical for realism)
+    # rFootVel: 0.7 (speed of step is critical for realism)
+    # trajectoryPos2D: 0.8 (direction of movement)
+    # hipRot: 0.6 (orientation of the body)
+    # selected_feature_names = ['hipPos', 'lFootPos', 'rFootPos', 'lFootVel', 'rFootVel', 'trajectoryPos2D', 'hipRot']
+    # selected_feature_weights = [0.9, 0.8, 0.8, 0.7, 0.7, 0.8, 0.6]
 
-    # selected_feature_names = ['lFootPos', 'rFootPos']
-    # selected_feature_weights = [1, 1]
+    # Upper body
+    # lHandPos: 0.8 (positioning of the hand for action)
+    # rHandPos: 0.8 (positioning of the hand for action)
+    # lHandVel: 0.7 (speed of hand movement)
+    # rHandVel: 0.7 (speed of hand movement)
+    # lFootPos: 0.6 (importance in movement)
+    # rFootPos: 0.6 (importance in movement)
+    # trajectoryPos2D: 0.6 (direction)
+    # selected_feature_names = ['lHandPos', 'rHandPos', 'lHandVel', 'rHandVel', 'lFootPos', 'rFootPos', 'trajectoryPos2D']
+    # selected_feature_weights = [0.8, 0.8, 0.7, 0.7, 0.6, 0.6, 0.6]
+
+    # Overall
+    # hipPos: 0.8 (core of movement)
+    # lFootVel: 0.6 (importance in movement)
+    # rFootVel: 0.6 (importance in movement)
+    # lHandVel: 0.5 (upper body movement speed)
+    # rHandVel: 0.5 (upper body movement speed)
+    # trajectoryPos2D: 0.7 (direction)
+    # hipRot: 0.7 (orientation)
+    selected_feature_names = ['hipPos', 'lFootVel', 'rFootVel', 'lHandVel', 'rHandVel', 'trajectoryPos2D', 'hipRot']
+    selected_feature_weights = [0.8, 0.6, 0.6, 0.5, 0.5, 0.7, 0.7]
 
     assert len(selected_feature_names) == len(selected_feature_weights)
 

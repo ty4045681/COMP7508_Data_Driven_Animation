@@ -58,7 +58,7 @@ def interpolation(left_data, right_data, t, method='linear', return_first_key=Tr
             key_rots = R.from_quat([q1, q2])
             key_times = [0, 1]
             slerp = Slerp(key_times, key_rots)
-            new_key_times = np.linspace(0, 1, t + 1)[1:-1]  # Exclude the first and last to avoid duplication
+            new_key_times = np.linspace(0, 1, t + 1)[1:-1]
             interp_rots = slerp(new_key_times).as_quat()
             if joint_idx == 0:
                 combined_rots = np.empty((t - 1, num_joints, dimensions))
@@ -215,13 +215,11 @@ def main():
     viewer = SimpleViewer()
 
     # part1_key_framing(viewer, 10, 10)
-    # part1_key_framing(viewer, 20, 10)
     # part1_key_framing(viewer, 10, 5)
-    # part1_key_framing(viewer, 10, 20)
+    part1_key_framing(viewer, 10, 20)
     # part1_key_framing(viewer, 10, 30)
-    # part1_key_framing(viewer, 10, 3)
     # part2_concatenate(viewer, between_frames=8, do_interp=False)
-    part2_concatenate(viewer, between_frames=8)
+    # part2_concatenate(viewer, between_frames=8)
     viewer.run()
 
 
