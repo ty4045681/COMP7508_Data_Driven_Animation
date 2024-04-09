@@ -1,8 +1,10 @@
+import os
+
 import taichi as ti
 import numpy as np
 
 # Set up Taichi
-ti.init(arch=ti.cpu, debug=True)
+ti.init(arch=ti.metal, debug=True)
 
 
 # Function to read an OBJ file
@@ -51,12 +53,12 @@ body_mass = ti.field(float, shape=())
 # Simulation parameters, feel free to change them
 # We assume all particles have the same mass
 particle_mass = 1
-initial_velocity = ti.Vector([3.0, 0.0, 0.0])
-initial_angular_velocity = ti.Vector([0.0, 0, 0.0])
+initial_velocity = ti.Vector([5.0, 5.0, 5.0])
+initial_angular_velocity = ti.Vector([5.0, 5.0, 5.0])
 gravity = ti.Vector([0.0, -9.8, 0.0])
 # stiffness of the collision
 collision_stiffness = 1e4
-velocity_damping_stiffness = 1e2
+velocity_damping_stiffness = 3
 friction_stiffness = 0.1
 # simulation integration time step
 dt = 1e-3
@@ -165,13 +167,13 @@ def substep():
             f_collision = collision_stiffness * (1 - particle_vertices[i][2])
             particle_force[i] += ti.Vector([0, 0, f_collision])
 
-        # # Damping force
-        # damping_force = -velocity_damping_stiffness * particle_velocities[i]
-        # particle_force[i] += damping_force
-        #
-        # # Friction force
-        # friction_force = -friction_stiffness * particle_velocities[i]
-        # particle_force[i] += friction_force
+        # Damping force
+        damping_force = -velocity_damping_stiffness * particle_velocities[i]
+        particle_force[i] += damping_force
+
+        # Friction force
+        friction_force = -friction_stiffness * particle_velocities[i]
+        particle_force[i] += friction_force
 
     # computer the force for rigid body
     body_force = ti.Vector([0.0, 0.0, 0.0])
@@ -241,7 +243,12 @@ camera = ti.ui.Camera()
 substeps = int(1 / 60 // dt)
 current_t = 0.0
 
-while window.running:
+os.makedirs('frames', exist_ok=True)
+
+frame_count = 0
+total_frames = 5 * 60
+
+while window.running and frame_count < total_frames:
     for i in range(substeps):
         substep()
         current_t += dt
@@ -260,4 +267,12 @@ while window.running:
 
     scene.lines(frame_vertices, color=(1, 0, 0), width=1)
     canvas.scene(scene)
+
+    frame_path = f'frames/frame_{frame_count:05d}.png'
+    window.save_image(frame_path)
+    frame_count += 1
+
     window.show()
+
+
+os.system('ffmpeg -r 60 -i frames/frame_%05d.png -c:v libx264 -pix_fmt yuv420p -crf 17 -t 5 videos/video13.mp4')
