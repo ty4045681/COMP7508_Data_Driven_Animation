@@ -2,7 +2,7 @@ import taichi as ti
 import numpy as np
 
 # Set up Taichi
-ti.init(arch=ti.metal, debug=True)
+ti.init(arch=ti.cpu, debug=True)
 
 
 # Function to read an OBJ file
@@ -51,12 +51,12 @@ body_mass = ti.field(float, shape=())
 # Simulation parameters, feel free to change them
 # We assume all particles have the same mass
 particle_mass = 1
-initial_velocity = ti.Vector([0.0, 0.0, 0.0])
+initial_velocity = ti.Vector([3.0, 0.0, 0.0])
 initial_angular_velocity = ti.Vector([0.0, 0, 0.0])
 gravity = ti.Vector([0.0, -9.8, 0.0])
 # stiffness of the collision
 collision_stiffness = 1e4
-velocity_damping_stiffness = 1e3
+velocity_damping_stiffness = 1e2
 friction_stiffness = 0.1
 # simulation integration time step
 dt = 1e-3
@@ -103,7 +103,6 @@ def initial():
     # Initialize the particle velocities
     for i in ti.grouped(particle_vertices):
         particle_velocities[i] = initial_velocity
-        print(initial_velocity)
 
     # Initialize the body state
     body_velocity[None] = initial_velocity
@@ -144,12 +143,15 @@ def substep():
     # computer the force on each particle
     for i in ti.grouped(particle_vertices):
         # TODO 2: gravity
-        particle_force[i] += particle_mass * gravity
+        particle_force[i] = particle_mass * gravity
 
         # Collision force, we use a spring model to simulate the collision
         if particle_vertices[i][1] < -1:
             f_collision = collision_stiffness * (-1 - particle_vertices[i][1])
             particle_force[i] += ti.Vector([0, f_collision, 0])
+        # if particle_vertices[i][1] > 1:
+        #     f_collision = collision_stiffness * (1 - particle_vertices[i][1])
+        #     particle_force[i] += ti.Vector([0, f_collision, 0])
         if particle_vertices[i][0] < -1:
             f_collision = collision_stiffness * (-1 - particle_vertices[i][0])
             particle_force[i] += ti.Vector([f_collision, 0, 0])
@@ -162,6 +164,14 @@ def substep():
         if particle_vertices[i][2] > 1:
             f_collision = collision_stiffness * (1 - particle_vertices[i][2])
             particle_force[i] += ti.Vector([0, 0, f_collision])
+
+        # # Damping force
+        # damping_force = -velocity_damping_stiffness * particle_velocities[i]
+        # particle_force[i] += damping_force
+        #
+        # # Friction force
+        # friction_force = -friction_stiffness * particle_velocities[i]
+        # particle_force[i] += friction_force
 
     # computer the force for rigid body
     body_force = ti.Vector([0.0, 0.0, 0.0])
